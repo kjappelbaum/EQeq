@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+import io
 import json
 import pathlib
+from contextlib import ExitStack, redirect_stderr
 from typing import Union
-from contextlib import ExitStack
 
 import pyeqeq_eqeq
 
@@ -30,21 +31,27 @@ def run_on_cif(
     # ExitStack allows conditional context manager
     with ExitStack() as stack:
         if not verbose:
-            _output = stack.enter_context(pyeqeq_eqeq.ostream_redirect(stdout=True, stderr=True))
+            # Capture stderr. It is currently discarded (but could be returned)
+            _stderr = io.StringIO()
+            stack.enter_context(redirect_stderr(_stderr))
 
-        result = pyeqeq_eqeq.run(
-            cif,
-            "json" if output_type == "list" else output_type,
-            dielectric_screening,
-            h_electron_affinity,
-            charge_precision,
-            method,
-            num_cells_real,
-            num_cells_freq,
-            ewald_splitting,
-            ionization_data_path,
-            charge_data_path,
-        )
+        # Redirect C++ std::cout and std::cerr to python sys.stdout and sys.stderr
+        # This needs to happen *before* capturing stdout/stderr at the python
+        with pyeqeq_eqeq.ostream_redirect(stdout=True, stderr=True):
+
+            result = pyeqeq_eqeq.run(
+                cif,
+                "json" if output_type == "list" else output_type,
+                dielectric_screening,
+                h_electron_affinity,
+                charge_precision,
+                method,
+                num_cells_real,
+                num_cells_freq,
+                ewald_splitting,
+                ionization_data_path,
+                charge_data_path,
+            )
     if outpath is not None:
         with open(outpath, "w") as handle:
             handle.write(result)
