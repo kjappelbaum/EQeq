@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.0.9](https://www.github.com/lsmo-epfl/EQeq/compare/v0.0.8...v0.0.9) (2021-07-01)
+
+
+### Bug Fixes
+
+* bump version number ([3aaa005](https://www.github.com/lsmo-epfl/EQeq/commit/3aaa005025a253db177a1d6eadccaddd51a791db))
+
 ### [0.0.8](https://www.github.com/lsmo-epfl/EQeq/compare/v0.0.7...v0.0.8) (2021-07-01)
 
 
