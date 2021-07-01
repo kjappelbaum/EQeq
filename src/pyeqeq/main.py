@@ -2,6 +2,7 @@
 import json
 import pathlib
 from typing import Union
+from contextlib import ExitStack
 
 import pyeqeq_eqeq
 
@@ -21,22 +22,29 @@ def run_on_cif(
     ionization_data_path: Union[str, pathlib.Path] = IONIZATION_DATA_PATH,
     charge_data_path: Union[str, pathlib.Path] = CHARGE_DATA_PATH,
     outpath: Union[str, pathlib.Path] = None,
+    verbose: bool = True,
 ):
     output_type = output_type.lower()
     method = method.lower()
-    result = pyeqeq_eqeq.run(
-        cif,
-        "json" if output_type == "list" else output_type,
-        dielectric_screening,
-        h_electron_affinity,
-        charge_precision,
-        method,
-        num_cells_real,
-        num_cells_freq,
-        ewald_splitting,
-        ionization_data_path,
-        charge_data_path,
-    )
+
+    # ExitStack allows conditional context manager
+    with ExitStack() as stack:
+        if not verbose:
+            _output = stack.enter_context(pyeqeq_eqeq.ostream_redirect(stdout=True, stderr=True))
+
+        result = pyeqeq_eqeq.run(
+            cif,
+            "json" if output_type == "list" else output_type,
+            dielectric_screening,
+            h_electron_affinity,
+            charge_precision,
+            method,
+            num_cells_real,
+            num_cells_freq,
+            ewald_splitting,
+            ionization_data_path,
+            charge_data_path,
+        )
     if outpath is not None:
         with open(outpath, "w") as handle:
             handle.write(result)
