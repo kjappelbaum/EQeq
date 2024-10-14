@@ -32,7 +32,7 @@ def run_on_cif(
     method = method.lower()
 
     # ExitStack allows conditional context manager
-    with tempfile.TemporaryFile() as temp_filename, ExitStack() as stack:
+    with tempfile.TemporaryDirectory() as temp_dir, ExitStack() as stack:
         if not verbose:
             # Capture stderr. It is currently discarded (but could be returned)
             _stderr = io.StringIO()
@@ -42,6 +42,9 @@ def run_on_cif(
         # Many valid CIF files will not be correctly read by EQeq, since that assumes a particular ordering of the
         # atom properties, see https://github.com/lsmo-epfl/EQeq/issues/24
         # We use the manage_crystals library to bring any input CIF file into the format expected by EQeq
+        if verbose:
+            print("Standardizing CIF file")
+        temp_filename = str(pathlib.Path(temp_dir) / "standardized.cif")
         parse_and_write(cif, temp_filename)
 
         # Redirect C++ std::cout and std::cerr to python sys.stdout and sys.stderr
